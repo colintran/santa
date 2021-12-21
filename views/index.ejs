@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<head>
+    <title>Secret santa</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <h1>Welcome to Secret Santa Game</h1>
+    <h2>Participants</h2>
+    <table>
+        <tr>
+          <th>Name</th>
+          <th>Recipient</th>
+          <th>Edit</th>
+        </tr>
+        <%for (let participant of participants) { %>
+            <tr>
+              <td><%=participant.name%></td>
+              <td><%=participant.recipient%></td>
+              <td>
+                  <div>
+                      <a href="/edit-person/<%=participant.name%>">Edit</a>
+                      <a href="/delete-person/<%=participant.name%>">Delete</a>
+                  </div>
+              </td>
+            </tr>
+        <% }%>
+    </table>
+    <div class="button-row">
+        <form action="/play" method="POST">
+            <button type="submit">Generate Santa</button>
+        </form>
+        <form action="/addPerson">
+            <button>Add Person</button>
+        </form>
+    </div>
+</body>
