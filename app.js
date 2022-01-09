@@ -50,6 +50,26 @@ let checkNoOneGivePresentToHimSelf = oneMappingSanta => {
     return true;
 }
 
+let checkNo2PersonsGivingPresentToEachother = oneMappingSanta => {
+    for (const [giver, recipient] of oneMappingSanta){
+        if (giver === oneMappingSanta.get(recipient)){
+            // console.log("Invalid, 2 persons %d and %d give present to eachother",giver, recipient);
+            return false;
+        }
+    }
+    return true;
+}
+
+let checkBlockedRecipient = (oneMappingSanta, participants) => {
+    for (let i=0; i<participants.length; ++i){
+        let recipient = participants[oneMappingSanta.get(i)].name;
+        if (participants[i].blocked !== undefined && participants[i].blocked.findIndex(p => p === recipient) !== -1){
+            return false;
+        }
+    }
+    return true;
+}
+
 let checkRules = (rules, oneMappingSanta) => {
     let isValid = true;
     rules.forEach(rule => {
@@ -72,6 +92,37 @@ let utestCheckNoOneGivePresentToHimSelf = () => {
     console.log("utestCheckNoOneGivePresentToHimSelf Valid case: ",checkNoOneGivePresentToHimSelf(oneValidSanta)?"OK":"KO");
 }
 
+let utestcheckBlockedRecipient = () => {
+    const oneInvalidSanta = new Map();
+    oneInvalidSanta.set(0,1);
+    oneInvalidSanta.set(1,2);
+    oneInvalidSanta.set(2,0);
+    let aParticipants = [{name: "A"},{name: "B", blocked:["C"]},{name: "C"}];
+    console.log("utestcheckBlockedRecipient Invalid case: ",checkBlockedRecipient(oneInvalidSanta, aParticipants)?"KO":"OK");
+
+    const oneValidSanta = new Map();
+    oneValidSanta.set(0,1);
+    oneValidSanta.set(1,2);
+    oneValidSanta.set(2,0);
+    aParticipants = [{name: "A"},{name: "B", blocked:["A"]},{name: "C"}];
+    console.log("utestcheckBlockedRecipient Valid case: ",checkBlockedRecipient(oneValidSanta, aParticipants)?"OK":"KO");
+}
+
+let utestCheckNo2PersonsGivingPresentToEachother = () => {
+    const oneInvalidSanta = new Map();
+    oneInvalidSanta.set(0,1);
+    oneInvalidSanta.set(1,0);
+    oneInvalidSanta.set(2,3);
+    oneInvalidSanta.set(3,2);
+    console.log("utestCheckNo2PersonsGivingPresentToEachother Invalid case: ",checkNo2PersonsGivingPresentToEachother(oneInvalidSanta)?"KO":"OK");
+
+    const oneValidSanta = new Map();
+    oneValidSanta.set(0,1);
+    oneValidSanta.set(1,2);
+    oneValidSanta.set(2,0);
+    console.log("utestCheckNo2PersonsGivingPresentToEachother Valid case: ",checkNo2PersonsGivingPresentToEachother(oneValidSanta)?"OK":"KO");
+}
+
 let utestCheckRules = () => {
     let rules = [checkNoOneGivePresentToHimSelf];
     let oneInvalidSanta = new Map();
@@ -83,14 +134,16 @@ let utestCheckRules = () => {
 }
 
 utestCheckNoOneGivePresentToHimSelf();
+utestCheckNo2PersonsGivingPresentToEachother();
+utestcheckBlockedRecipient();
 utestCheckRules();
 
-let getOneValidMappingSanta = (participantIndexes, random) => {
-    const rules = [checkNoOneGivePresentToHimSelf];
+let getOneValidMappingSanta = (participants, random) => {
+    const rules = [checkNoOneGivePresentToHimSelf,checkNo2PersonsGivingPresentToEachother];
     const maxTurn = 100;
     for (let i=0; i<maxTurn; ++i){
-        const oneMappingSanta = getOneMappingSanta(participantIndexes, random);
-        if (checkRules(rules, oneMappingSanta)){
+        const oneMappingSanta = getOneMappingSanta(participants, random);
+        if (checkRules(rules, oneMappingSanta) && checkBlockedRecipient(oneMappingSanta, participants)){
             return oneMappingSanta;
         }
     }
@@ -157,7 +210,10 @@ router.post('/addPerson', (req,res,next) =>{
 
 router.get('/edit-person/:personName', (req,res,next) =>{
     const personName = req.params.personName;
-    res.render('edit-person', {person:{name: personName}});
+    let idx = participants.findIndex(p => {
+        return p.name === personName;
+    })
+    res.render('edit-person', {person:participants[idx]});
 })
 
 router.post('/edit-person/:personName', (req,res,next) =>{
@@ -192,6 +248,26 @@ router.get('/delete-person/:personName', (req,res,next) => {
     // for consistency, reset recipient list if already assigned
     for (let p of participants) {
         p.recipient = undefined;
+    }
+    res.redirect('/');
+})
+
+router.get('/block-person/:personName', (req,res,next) =>{
+    const personName = req.params.personName;
+    let idx = participants.findIndex(p => {
+        return p.name === personName;
+    })
+    res.render('block-person', {person:participants[idx], participants: participants});
+})
+
+router.post('/block-person/:personName', (req,res,next) =>{
+    const personName = req.params.personName;
+    const submittedListStr = req.body.submittedList;
+    let personList = submittedListStr.split(',');
+    let idx = participants.findIndex(p => p.name === personName);
+    if (idx !== -1){
+        participants[idx].blocked = personList;
+        Participant.persist(participants);
     }
     res.redirect('/');
 })

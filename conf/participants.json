@@ -1,1 +1,1 @@
-[{"name":"Ha"},{"name":"Hoang"}]
+[{"name":"Ha","blocked":["Cuong"]},{"name":"Hoang","blocked":["Ngoc","Dieu"]},{"name":"Cuong","blocked":["Ha"]},{"name":"Mr.Bang","blocked":["Dieu"]},{"name":"Dieu","blocked":["Mr.Bang"]},{"name":"Ngoc","blocked":["Hoang"]}]

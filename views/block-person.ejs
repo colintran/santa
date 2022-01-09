@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<head>
+    <title>Block Persons</title>
+</head>
+<body>
+    <form action="/block-person/<%=person.name%>" method="POST">
+        <h3>Name: <%=person.name%></h3>
+        <ul id="blockedList">Persons who can't receive present:
+            <% if (person.blocked !== undefined && person.blocked.length > 0) {%>
+                <% for (let p of person.blocked) {%>
+                <li id=<%="block_"+p%>>
+                    <input disabled="true" value=<%=p%>>
+                    <button type="button" onclick='deletePerson("<%=p%>")'>Delete</button>
+                </li>
+                <%}%>
+            <%}%>
+        </ul>
+        <% if (person.blocked === undefined || person.blocked.length == 0) {%>
+            <input type="hidden" readonly id="submittedList" name="submittedList" value="">
+        <%} else {%>
+            <input type="hidden" readonly id="submittedList" name="submittedList" value="<%= person.blocked.join(',')%>">
+        <%}%>
+        <div class="nav_edit">
+            <label>Add Person</label>
+            <select id="blocked" onchange="handleSelect()">
+                <% if (participants.length > 0) {%>
+                    <option value=''>-Select a name-</option>
+                    <% for (let p of participants) {%>
+                        <% if ((p.name !== person.name) && (person.blocked === undefined || person.blocked.findIndex(x => p.name === x) === -1)) {%>
+                            <option id=<%= "select_"+p.name%> value=<%=p.name%>><%=p.name%></option>
+                        <%}%>            
+                    <%}%>
+                <%}%>   
+            </select>
+        </div>
+        
+        <button type="submit">Save</button>
+    </form>
+    <script>
+        function createNewNameDom(personName){
+            var newLine = document.createElement("li");
+            var attrId = document.createAttribute("id");
+            attrId.value = "block_"+personName;
+            newLine.setAttributeNode(attrId);
+            
+            var aText = document.createElement("input");
+            aText.setAttribute("disabled",true); // will not be submitted
+            aText.setAttribute("name","block_"+personName);
+            aText.setAttribute("value",personName);
+            
+            var aButton = document.createElement("button");
+            var attrType = document.createAttribute("type");
+            attrType.value = "button";
+            var attrOnClick = document.createAttribute("onclick");
+            attrOnClick.value = "deletePerson(\""+personName+"\")";
+            aButton.setAttributeNode(attrType);
+            aButton.setAttributeNode(attrOnClick);
+            aButton.innerHTML = "Delete";
+            
+            newLine.appendChild(aText);
+            newLine.appendChild(aButton);
+            return newLine;
+        }
+        function createNewSelectionOptionDom(personName){
+            var newSelectOption = document.createElement("option");
+            var attrId = document.createAttribute("id");
+            attrId.value = "select_" + personName;
+            var attrValue = document.createAttribute("value");
+            attrValue.value = personName;
+            newSelectOption.setAttributeNode(attrId);
+            newSelectOption.setAttributeNode(attrValue);
+            newSelectOption.innerHTML = personName;
+            return newSelectOption;
+        }
+        function handleSelect(){
+            let selectedVal = document.getElementById("blocked").value;
+            if(selectedVal !== ''){
+                document.getElementById("blockedList").appendChild(createNewNameDom(selectedVal));
+                // remove option from select list
+                document.getElementById("select_"+selectedVal).remove();
+                // add to submitted data
+                let aSubmitted = (document.getElementById("submittedList").value === ''?selectedVal: document.getElementById("submittedList").value + "," + selectedVal);
+                document.getElementById("submittedList").value = aSubmitted;
+            }
+        }
+        function deletePerson(personName){
+            var id = "block_" + personName;
+            document.getElementById(id).remove();
+            // recover person in select list
+            document.getElementById("blocked").appendChild(createNewSelectionOptionDom(personName));
+            // remove person in submitted data
+            var aSubmitted = document.getElementById("submittedList").value;
+            var aPersonList = aSubmitted.split(',');
+            var aRemovedList = aPersonList.filter(p => p !== personName);
+            document.getElementById("submittedList").value = aRemovedList.join(',');
+        }
+    </script>
+</body>

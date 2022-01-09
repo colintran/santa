@@ -8,20 +8,34 @@
     <h2>Participants</h2>
     <table>
         <tr>
-          <th>Name</th>
-          <th>Recipient</th>
-          <th>Edit</th>
+          <th>Santa</th>
+          <th>Can't give present to</th>
+          <th>Secret Recipient</th>
+          <th></th>
         </tr>
         <%for (let participant of participants) { %>
             <tr>
-              <td><%=participant.name%></td>
-              <td><%=participant.recipient%></td>
-              <td>
-                  <div>
-                      <a href="/edit-person/<%=participant.name%>">Edit</a>
-                      <a href="/delete-person/<%=participant.name%>">Delete</a>
-                  </div>
-              </td>
+                <td><a href="/edit-person/<%=participant.name%>"><%=participant.name%></a></td>
+                <td >
+                    <div class="nav_edit">
+                        <% if (participant.blocked !== undefined && participant.blocked.length > 0) {%>
+                            <% for (let i=0; i<participant.blocked.length; ++i) {%>
+                               <%=participant.blocked[i]%><br>
+                            <%}%>
+                        <%}%>
+                    </div>
+                    <div class="nav_edit">
+                        <form action="/block-person/<%=participant.name%>">
+                            <button type="submit">Edit</button>
+                        </form>
+                    </div>
+                </td>
+                <td><%=participant.recipient%></td>
+                <td>
+                    <div>
+                        <a href="/delete-person/<%=participant.name%>">Delete</a>
+                    </div>
+                </td>
             </tr>
         <% }%>
     </table>

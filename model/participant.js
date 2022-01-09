@@ -23,7 +23,7 @@ module.exports = class Participant {
         // keep only name of participants
         let persistedList = [];
         for (const p of participants){
-            persistedList.push({name: p.name});
+            persistedList.push({name: p.name, blocked:p.blocked});
         }
         return fsPromises.writeFile(inputFile, JSON.stringify(persistedList))
     }
