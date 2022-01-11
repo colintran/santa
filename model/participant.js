@@ -3,13 +3,23 @@ const path = require('path');
 const rootPath = require('../util/rootPath');
 const fsPromises = require('fs/promises');
 
-const inputFile = path.join(rootPath, 'conf','participants.json');
+const fileDir = path.join(rootPath, 'data');
+const inputFile = path.join(fileDir,'participants.json');
 module.exports = class Participant {
     constructor(name){
         this.name = name;
     }
     static getParticipants() {
         return new Promise((resolve, reject) => {
+            if (!fs.existsSync(inputFile)){
+                resolve([]);
+                //create file
+                if (!fs.existsSync(fileDir)){
+                    fs.mkdirSync(fileDir, {recursive:true});
+                }
+                fs.appendFileSync(inputFile, "[]");
+                return;
+            }
             fs.readFile(inputFile, (err, fileContent) => {
                 if (err) {
                     reject(err);
